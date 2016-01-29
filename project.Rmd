@@ -1,0 +1,74 @@
+---
+title: 'Accelerometers Prediction Assignment'
+author: "R Sherrod"
+date: "January 29, 2016"
+output: html_document
+---
+
+## Background
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+## Load Data/Libraries
+Load required data and R libraries for analysis.
+```{r}
+setwd("C:\\Training\\Machine_learning")
+
+suppressWarnings(suppressMessages(library(caret)))
+suppressWarnings(suppressMessages(library(MASS)))
+suppressWarnings(suppressMessages(library(randomForest)))
+suppressWarnings(suppressMessages(library(ggplot2)))
+
+set.seed(11114)
+
+#load data
+data <- read.csv("./data/pml-training.csv", na.strings=c("NA",""))
+holdout <- read.csv("./data/pml-testing.csv", na.strings=c("NA",""))
+dim(data); dim(holdout)
+```
+
+## Data Processing & Feature Selection
+It is important to partition data into training and testing data sets.  First, however, we need to remove some irrelevant columns, columns with 75%+ NAs, or near zero data.
+```{r}
+#remove irrelvant columns, columns with lots of NAs, and near zero data
+removecols <- data[,-(1:5)]
+removeNA <- removecols[, colSums(is.na(removecols)) < nrow(removecols) * 0.25]
+removenz <- nearZeroVar(removeNA, saveMetrics=TRUE)
+slim <- removeNA[,!removenz$nzv]
+
+#partition train into 75/25 for learning
+inTrain <- createDataPartition(slim$classe, p=0.25, list = FALSE)
+train <- slim[inTrain,]
+test <- slim[-inTrain,]
+```
+### Make Sure Class Distribution is similar across Train/Test Data
+```{r}
+#check class distribution
+table(train$classe)
+table(test$classe)
+```
+## Model Building & Validation
+I will build two machine learning models: linear discriminat and random forest.  Based on the predcition accuray on the test data I will then select one algorithm to predict on the holdout sample.
+
+```{r}
+#run two models: Linear Discriminant and Random Forecast
+model1 <- train(classe ~ ., data=train, method="lda",verbose = FALSE)
+model2 <- train(classe ~ ., method = "rf", data = train, importance = T, 
+                verbose = F, trControl = trainControl(method = "cv", number = 3))
+
+#predict on test
+predict1 <- predict(model1, test)
+predict2 <- predict(model2, test)
+
+#check prediction accuracy
+confusionMatrix(test$classe,predict(model1,test))
+confusionMatrix(test$classe,predict(model2,test))
+```
+The accuracy of the random forest model is 98.6% on the test data vs 71.2% for the linear disciminant model. Since the random forest model performs better on the test data set, I will use it to predict on the holdout data.  i would expect that the prediction accuracy is high on the holdout sample due to the performance on the test data set.
+
+## Predict the Holdout Sample
+```{r}
+#predict on the holdout sample
+predict(model2, holdout)
+
+```
+
