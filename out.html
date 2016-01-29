@@ -105,7 +105,7 @@ inTrain &lt;- createDataPartition(slim$classe, p=0.25, list = FALSE)
 train &lt;- slim[inTrain,]
 test &lt;- slim[-inTrain,]</code></pre>
 <div id="make-sure-class-distribution-is-similar-across-traintest-data" class="section level3">
-<h3>Make Sure Class Distribution is similar across Train/Test Data</h3>
+<h3>Make Sure Class Distribution is Similar Across Train/Test Data</h3>
 <pre class="r"><code>#check class distribution
 table(train$classe)</code></pre>
 <pre><code>## 

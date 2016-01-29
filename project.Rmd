@@ -40,7 +40,7 @@ inTrain <- createDataPartition(slim$classe, p=0.25, list = FALSE)
 train <- slim[inTrain,]
 test <- slim[-inTrain,]
 ```
-### Make Sure Class Distribution is similar across Train/Test Data
+### Make Sure Class Distribution is Similar Across Train/Test Data
 ```{r}
 #check class distribution
 table(train$classe)
